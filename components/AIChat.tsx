@@ -4,15 +4,19 @@ import ChatResponse from './ChatResponse';
 import { generateResponse } from '../utils/api';
 
 interface AIChatProps {
-  messages: { message: string, isUser: boolean }[];
-  onNewMessage: (message: { message: string, isUser: boolean }) => void;
+  chat: {
+    _id: string;
+    title: string;
+    messages: { message: string; isUser: boolean }[];
+  };
+  onNewMessage: (message: { message: string; isUser: boolean }) => void;
 }
 
-const AIChat = ({ messages, onNewMessage }: AIChatProps) => {
+const AIChat = ({ chat, onNewMessage }: AIChatProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (input: string) => {
-    onNewMessage({ message: input, isUser: true });
+    await onNewMessage({ message: input, isUser: true });
     setIsLoading(true);
     try {
       const result = await generateResponse(input);
@@ -26,10 +30,10 @@ const AIChat = ({ messages, onNewMessage }: AIChatProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      <h1 className="text-3xl font-bold mb-6 text-center text-white">Nkunja AI</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-white">{chat.title}</h1>
       <div className="flex-grow bg-white p-4 rounded-lg shadow-lg overflow-y-auto font-sans">
-        {messages.map((response, index) => (
-          <ChatResponse key={index} message={response.message} isUser={response.isUser} />
+        {chat.messages.map((message, index) => (
+          <ChatResponse key={index} message={message.message} isUser={message.isUser} />
         ))}
       </div>
       <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />

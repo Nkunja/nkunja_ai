@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { FiPlus, FiChevronLeft, FiChevronRight, FiLogOut } from 'react-icons/fi';
+import { useChat } from '../hooks/useChat';
+
 
 interface Chat {
-  id: string;
+  _id: string;
   title: string;
 }
 
@@ -14,6 +16,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ chats = [], onSelectChat, onNewChat, onLogout }: SidebarProps) => {
+  console.log('Sidebar chats:', chats);  
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -42,20 +45,21 @@ const Sidebar = ({ chats = [], onSelectChat, onNewChat, onLogout }: SidebarProps
           >
             <FiPlus className="mr-2" /> New Chat
           </button>
+
           <div className="flex-grow overflow-y-auto">
             {chats.map((chat) => (
               <div
-                key={chat.id}
-                onClick={() => handleChatSelect(chat.id)}
+                key={chat._id}
+                onClick={() => handleChatSelect(chat._id)}
                 className={`p-2 rounded cursor-pointer ${
-                  selectedChat === chat.id ? 'bg-gray-700' : 'hover:bg-gray-700'
+                  selectedChat === chat._id ? 'bg-gray-700' : 'hover:bg-gray-700'
                 }`}
               >
                 {chat.title}
               </div>
             ))}
-              
           </div>
+
             <button
                 onClick={onLogout}
                 className="flex items-center justify-center w-full  bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"

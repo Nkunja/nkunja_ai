@@ -2,18 +2,27 @@ import React, { createContext, useContext } from 'react';
 import { useChat } from '../hooks/useChat';
 
 interface Chat {
-  id: string;
+  _id: string;  
   title: string;
   messages: { message: string; isUser: boolean }[];
 }
 
+interface Message {
+  _id: string;
+  message: string;
+  isUser: boolean;
+}
+
 interface ChatContextType {
   chats: Chat[];
+  messages: Message[];  
   activeChatId: string | null;
   isAuthenticated: boolean;
+  fetchChats: () => Promise<void>;  
   handleNewChat: () => Promise<void>;
-  handleSelectChat: (chatId: string) => void;
-  handleNewMessage: (chatId: string, message: { message: string; isUser: boolean }) => void;
+  handleSelectChat: (chatId: string) => Promise<void>;  
+  getActiveChat: () => Chat | null;  
+  handleNewMessage: (chatId: string, messageData: { message: string; isUser: boolean }) => Promise<void>;  
   handleLogout: () => void;
 }
 
