@@ -13,7 +13,10 @@
     "@vercel/node": "^3.2.7",
     "axios": "^1.7.2",
     "framer-motion": "^11.3.8",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.1",
     "next": "14.2.5",
+    "next-auth": "^4.24.7",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.2.1"

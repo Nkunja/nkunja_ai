@@ -2,6 +2,8 @@ import { useState } from 'react';
 import Head from 'next/head';
 import Sidebar from './Sidebar';
 import AIChat from './AIChat';
+import Chat from '../lib/models/chatModel';
+import { SaveChat } from '../lib/functions';
 
 interface Chat {
   id: string;
@@ -13,13 +15,18 @@ const Layout = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     const newChatId = Date.now().toString();
     const newChat = {
       id: newChatId,
       title: `Chat ${chats.length + 1}`,
       messages: [],
     };
+    await fetch('/api/save-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newChat.title }),
+    })
     setChats([...chats, newChat]);
     setActiveChatId(newChatId);
   };

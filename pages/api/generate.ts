@@ -1,5 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { connectDb } from '../../lib/connectDb';
+
+connectDb();
+
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -6,7 +6,9 @@ import AIChat from '../components/AIChat';
 const Home: NextPage = () => {
   return (
     <Layout>
-      <AIChat />
+      <AIChat messages={[]} onNewMessage={function (message: { message: string; isUser: boolean; }): void {
+        throw new Error('Function not implemented.');
+      } } />
     </Layout>
   );
 };
