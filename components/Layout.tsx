@@ -1,48 +1,16 @@
-import { useState } from 'react';
 import Head from 'next/head';
 import Sidebar from './Sidebar';
 import AIChat from './AIChat';
-import Chat from '../lib/models/chatModel';
-import { SaveChat } from '../lib/functions';
-
-interface Chat {
-  id: string;
-  title: string;
-  messages: { message: string, isUser: boolean }[];
-}
+import { useChatContext } from '../contexts/ChatContext';
 
 const Layout = () => {
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const { chats, activeChatId, isAuthenticated, handleNewChat, handleSelectChat, handleNewMessage, handleLogout } = useChatContext();
 
-  const handleNewChat = async () => {
-    const newChatId = Date.now().toString();
-    const newChat = {
-      id: newChatId,
-      title: `Chat ${chats.length + 1}`,
-      messages: [],
-    };
-    await fetch('/api/save-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newChat.title }),
-    })
-    setChats([...chats, newChat]);
-    setActiveChatId(newChatId);
-  };
+  if (!isAuthenticated) {
+    return null;
+  }
 
-  const handleSelectChat = (chatId: string) => {
-    setActiveChatId(chatId);
-  };
-
-  const handleNewMessage = (chatId: string, message: { message: string, isUser: boolean }) => {
-    setChats(chats.map(chat => chat.id === chatId ? {
-      ...chat,
-      messages: [...chat.messages, message],
-    } : chat));
-  };
-
-  const activeChat = chats.find(chat => chat.id === activeChatId);
+  const activeChat = chats.find((chat) => chat.id === activeChatId);
 
   return (
     <div className="fixed inset-0 flex bg-gradient-to-br from-purple-400 via-pink-500 to-red-500">
@@ -51,10 +19,13 @@ const Layout = () => {
         <meta name="description" content="Nkunja AI by Gemini API" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Sidebar chats={chats} onSelectChat={handleSelectChat} onNewChat={handleNewChat} />
+      <Sidebar chats={chats} onSelectChat={handleSelectChat} onNewChat={handleNewChat} onLogout={handleLogout} />
       <main className="flex-1 flex flex-col">
         {activeChat ? (
-          <AIChat messages={activeChat.messages} onNewMessage={(message) => handleNewMessage(activeChat.id, message)} />
+          <AIChat
+            messages={activeChat.messages}
+            onNewMessage={(message) => handleNewMessage(activeChat.id, message)}
+          />
         ) : (
           <div className="flex items-center justify-center flex-1 text-white">
             <p>Select a chat or start a new one</p>

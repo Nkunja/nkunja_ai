@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiPlus, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiPlus, FiChevronLeft, FiChevronRight, FiLogOut } from 'react-icons/fi';
 
 interface Chat {
   id: string;
@@ -10,9 +10,10 @@ interface SidebarProps {
   chats: Chat[];
   onSelectChat: (chatId: string) => void;
   onNewChat: () => void;
+  onLogout: () => void;
 }
 
-const Sidebar = ({ chats = [], onSelectChat, onNewChat }: SidebarProps) => {
+const Sidebar = ({ chats = [], onSelectChat, onNewChat, onLogout }: SidebarProps) => {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -53,7 +54,14 @@ const Sidebar = ({ chats = [], onSelectChat, onNewChat }: SidebarProps) => {
                 {chat.title}
               </div>
             ))}
+              
           </div>
+            <button
+                onClick={onLogout}
+                className="flex items-center justify-center w-full  bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
+              >
+                <FiLogOut className="mr-2" /> Logout
+            </button>
         </>
       )}
     </div>
@@ -61,3 +69,7 @@ const Sidebar = ({ chats = [], onSelectChat, onNewChat }: SidebarProps) => {
 };
 
 export default Sidebar;
+
+
+
+

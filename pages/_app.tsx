@@ -1,6 +1,13 @@
-import type { AppProps } from 'next/app'
-import '../styles/globals.css'
+import type { AppProps } from 'next/app';
+import { ChatProvider } from '../contexts/ChatContext';
+import '../styles/globals.css';
 
-export default function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+function MyApp({ Component, pageProps }: AppProps) {
+  return (
+    <ChatProvider>
+      <Component {...pageProps} />
+    </ChatProvider>
+  );
 }
+
+export default MyApp;
