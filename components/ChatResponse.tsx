@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import vscDarkPlus from 'react-syntax-highlighter/dist/cjs/styles/prism/vsc-dark-plus';
 
 interface ChatResponseProps {
   message: string;
@@ -19,7 +21,31 @@ const ChatResponse = ({ message, isUser }: ChatResponseProps) => {
       }`}
     >
       <div className="text-sm">
-        <ReactMarkdown >{message}</ReactMarkdown>
+        {/* <ReactMarkdown >{message}</ReactMarkdown> */}
+        <ReactMarkdown
+                className="ai-text"
+                components={{
+                  code({node, className, children, ...props}) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    return match ? (
+                      <SyntaxHighlighter
+                        style={vscDarkPlus as any}
+                        language={match[1]}
+                        PreTag="div"
+                        {...props as any}
+                      >
+                        {String(children).replace(/\n$/, '')}
+                      </SyntaxHighlighter>
+                    ) : (
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    )
+                  }
+                }}
+              >
+                {message}
+              </ReactMarkdown>
       </div>
 
     </motion.div>

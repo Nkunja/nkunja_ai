@@ -89,64 +89,6 @@ export const useChat = () => {
   }, [fetchWithAuth]);
 
 
-  // const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
-  //   try {
-  //     const response = await fetchWithAuth('/api/messages/create', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ chatId, ...messageData }),
-  //     });
-  
-  //     if (response.ok) {
-  //       const savedMessage: Message = await response.json();
-        
-  //       setChats((prevChats) => {
-  //         const updatedChats = prevChats.map((chat) => {
-  //           if (chat._id === chatId) {
-  //             const updatedMessages = Array.isArray(chat.messages) 
-  //               ? [...chat.messages, savedMessage]
-  //               : [savedMessage];
-              
-  //             // Update chat title if this is the first user message
-  //             const newTitle = updatedMessages.length === 1 && messageData.isUser
-  //               ? messageData.message.slice(0, 50) + (messageData.message.length > 50 ? '...' : '')
-  //               : chat.title;
-              
-  //             return {
-  //               ...chat,
-  //               title: newTitle,
-  //               messages: updatedMessages,
-  //             };
-  //           }
-  //           return chat;
-  //         });
-  
-  //         // Find the updated chat after the state update
-  //         const updatedChat = updatedChats.find(c => c._id === chatId);
-  
-  //         // Update chat title on the server if this is the first user message
-  //         if (messageData.isUser && updatedChat && updatedChat.messages.length === 1) {
-  //           fetchWithAuth(`/api/chats/${chatId}/update-title`, {
-  //             method: 'PUT',
-  //             headers: { 'Content-Type': 'application/json' },
-  //             body: JSON.stringify({ title: messageData.message.slice(0, 50) }),
-  //           }).catch(error => console.error('Failed to update chat title:', error));
-  //         }
-  
-  //         return updatedChats;
-  //       });
-  
-  //       if (chatId === activeChatId) {
-  //         setMessages((prevMessages) => [...prevMessages, savedMessage]);
-  //       }
-  //     } else {
-  //       console.error('Failed to save message');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error saving message:', error);
-  //   }
-  // }, [fetchWithAuth, activeChatId]);
-  
   const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
     try {
       const response = await fetchWithAuth('/api/messages/create', {
@@ -157,8 +99,9 @@ export const useChat = () => {
   
       if (response.ok) {
         const savedMessage: Message = await response.json();
-        setChats((prevChats) =>
-          prevChats.map((chat) => {
+        
+        setChats((prevChats) => {
+          const updatedChats = prevChats.map((chat) => {
             if (chat._id === chatId) {
               const updatedMessages = Array.isArray(chat.messages) 
                 ? [...chat.messages, savedMessage]
@@ -166,7 +109,7 @@ export const useChat = () => {
               
               // Update chat title if this is the first user message
               const newTitle = updatedMessages.length === 1 && messageData.isUser
-                ? messageData.message.slice(0, 50) + (messageData.message.length > 20 ? '...' : '')
+                ? messageData.message.slice(0, 50) + (messageData.message.length > 50 ? '...' : '')
                 : chat.title;
               
               return {
@@ -176,20 +119,25 @@ export const useChat = () => {
               };
             }
             return chat;
-          })
-        );
+          });
+  
+          // Find the updated chat after the state update
+          const updatedChat = updatedChats.find(c => c._id === chatId);
+  
+          // Update chat title on the server if this is the first user message
+          if (messageData.isUser && updatedChat && updatedChat.messages.length === 1) {
+            fetchWithAuth(`/api/chats/${chatId}/update-title`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title: messageData.message.slice(0, 50) }),
+            }).catch(error => console.error('Failed to update chat title:', error));
+          }
+  
+          return updatedChats;
+        });
+  
         if (chatId === activeChatId) {
           setMessages((prevMessages) => [...prevMessages, savedMessage]);
-        }
-  
-        // Update chat title on the server if this is the first user message
-        const updatedChat = chats.find(c => c._id === chatId);
-        if (messageData.isUser && updatedChat && updatedChat.messages.length === 1) {
-          await fetchWithAuth(`/api/chats/${chatId}/update-title`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: messageData.message.slice(0, 50) }),
-          });
         }
       } else {
         console.error('Failed to save message');
@@ -197,7 +145,59 @@ export const useChat = () => {
     } catch (error) {
       console.error('Error saving message:', error);
     }
-  }, [fetchWithAuth, activeChatId, chats]);
+  }, [fetchWithAuth, activeChatId]);
+  
+  // const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
+  //   try {
+  //     const response = await fetchWithAuth('/api/messages/create', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ chatId, ...messageData }),
+  //     });
+  
+  //     if (response.ok) {
+  //       const savedMessage: Message = await response.json();
+  //       setChats((prevChats) =>
+  //         prevChats.map((chat) => {
+  //           if (chat._id === chatId) {
+  //             const updatedMessages = Array.isArray(chat.messages) 
+  //               ? [...chat.messages, savedMessage]
+  //               : [savedMessage];
+              
+  //             // Update chat title if this is the first user message
+  //             const newTitle = updatedMessages.length === 1 && messageData.isUser
+  //               ? messageData.message.slice(0, 50) + (messageData.message.length > 20 ? '...' : '')
+  //               : chat.title;
+              
+  //             return {
+  //               ...chat,
+  //               title: newTitle,
+  //               messages: updatedMessages,
+  //             };
+  //           }
+  //           return chat;
+  //         })
+  //       );
+  //       if (chatId === activeChatId) {
+  //         setMessages((prevMessages) => [...prevMessages, savedMessage]);
+  //       }
+  
+  //       // Update chat title on the server if this is the first user message
+  //       const updatedChat = chats.find(c => c._id === chatId);
+  //       if (messageData.isUser && updatedChat && updatedChat.messages.length === 1) {
+  //         await fetchWithAuth(`/api/chats/${chatId}/update-title`, {
+  //           method: 'PUT',
+  //           headers: { 'Content-Type': 'application/json' },
+  //           body: JSON.stringify({ title: messageData.message.slice(0, 50) }),
+  //         });
+  //       }
+  //     } else {
+  //       console.error('Failed to save message');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error saving message:', error);
+  //   }
+  // }, [fetchWithAuth, activeChatId, chats]);
 
 
   const handleSelectChat = useCallback(async (chatId: string) => {
