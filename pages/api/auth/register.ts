@@ -22,6 +22,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    // Function to validate email format
+    const isValidEmail = (email: string): boolean => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
+
+    // Function to validate password strength
+    const isStrongPassword = (password: string): boolean => {
+      // Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      return passwordRegex.test(password);
+    };
+
+    // Validate email
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    // Validate password strength
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({ message: 'Password is not strong enough. It should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.' });
+    }
 
     // Create new user
     const newUser = new User({

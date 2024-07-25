@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Missing chatId or title' });
     }
 
-    const { db }: any = await connectDb();
+    const db: any = await connectDb();
 
     const result = await db.collection('chats').updateOne(
       { _id: new Chat(chatId as string), userId: new Chat(userId) },
@@ -42,6 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json({ message: 'Chat title updated successfully' });
   } catch (error) {
     console.error('Error updating chat title:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 }

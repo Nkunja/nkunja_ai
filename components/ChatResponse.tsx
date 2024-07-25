@@ -21,14 +21,13 @@ const ChatResponse = ({ message, isUser }: ChatResponseProps) => {
       }`}
     >
       <div className="text-sm">
-        {/* <ReactMarkdown >{message}</ReactMarkdown> */}
         <ReactMarkdown
                 className="ai-text"
                 components={{
                   code({node, className, children, ...props}) {
                     const match = /language-(\w+)/.exec(className || '')
                     return match ? (
-                      <SyntaxHighlighter
+                      <SyntaxHighlighter  
                         style={vscDarkPlus as any}
                         language={match[1]}
                         PreTag="div"

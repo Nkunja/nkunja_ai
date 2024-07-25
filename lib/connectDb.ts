@@ -5,7 +5,7 @@ export async function connectDb() {
   try {
     if (mongoose.connection.readyState === 1) {
         console.log('Already connected to the database');
-        return;
+        return mongoose.connection.db;
     }
     // Connect the client to the server	(optional starting in v4.7)
     await mongoose.connect(uri);
