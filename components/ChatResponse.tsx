@@ -15,11 +15,11 @@ const ChatResponse = ({ message, isUser }: ChatResponseProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={`p-4 rounded-lg mb-4 max-w-[70%] ${
-        isUser ? 'bg-purple-600 text-white ml-auto text-right max-w-[40%]' : 'bg-gray-100 text-gray-800'
+        isUser ? 'bg-purple-600 text-white ml-auto text-right max-w-[35%]' : 'bg-gray-100 text-gray-800'
       }`}
     >
       <div className="text-sm">
-        <ReactMarkdown>{message}</ReactMarkdown>
+        <ReactMarkdown >{message}</ReactMarkdown>
       </div>
 
     </motion.div>

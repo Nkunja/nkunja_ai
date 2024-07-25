@@ -17,7 +17,7 @@ interface Message {
 
 export const useChat = () => {
   const [chats, setChats] = useState<Chat[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [activeChatId, setActiveChatId] = useState<string>('');
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +55,6 @@ export const useChat = () => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
-      // You might want to fetch user's chats here
     } else {
       router.push('/login');
     }
@@ -63,17 +62,17 @@ export const useChat = () => {
 
   const handleNewChat = useCallback(async () => {
     const newChatId = new Date().getTime().toString();
-    const title = `Chat ${chats.length + 1}`;
     const newChat = {
-      id: newChatId,
-      title,
+      _id: newChatId,
+      title: "New Chat",
       messages: [],
     };
+  
     try {
       const response = await fetchWithAuth('/api/chats/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: newChatId, title }),
+        body: JSON.stringify({ id: newChatId, title: "New Chat" }),
       });
   
       if (response.ok) {
@@ -87,59 +86,88 @@ export const useChat = () => {
     } catch (error) {
       console.error('Error creating chat:', error);
     }
-  }, [chats, fetchWithAuth]);
+  }, [fetchWithAuth]);
 
 
-    const handleSelectChat = useCallback(async (chatId: string) => {
-        const selected = chats.find(chat => chat._id === chatId);
-        if (selected) {
-        setActiveChat(selected);
-        try {
-            const response = await fetchWithAuth(`/api/messages/${chatId}`);
-            if (response.ok) {
-            const data = await response.json();
-            setMessages(data.messages);
-            } else {
-            console.error('Failed to fetch messages');
+  const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
+    try {
+      const response = await fetchWithAuth('/api/messages/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId, ...messageData }),
+      });
+  
+      if (response.ok) {
+        const savedMessage: Message = await response.json();
+        
+        setChats((prevChats) => {
+          const updatedChats = prevChats.map((chat) => {
+            if (chat._id === chatId) {
+              const updatedMessages = Array.isArray(chat.messages) 
+                ? [...chat.messages, savedMessage]
+                : [savedMessage];
+              
+              // Update chat title if this is the first user message
+              const newTitle = updatedMessages.length === 1 && messageData.isUser
+                ? messageData.message.slice(0, 50) + (messageData.message.length > 50 ? '...' : '')
+                : chat.title;
+              
+              return {
+                ...chat,
+                title: newTitle,
+                messages: updatedMessages,
+              };
             }
-        } catch (error) {
-            console.error('Error fetching messages:', error);
-        }
-        }
-    }, [chats]);
-
-
-
-    const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
-        try {
-          const response = await fetchWithAuth('/api/messages/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chatId, ...messageData }),
+            return chat;
           });
-      
-          if (response.ok) {
-            const savedMessage: Message = await response.json();
-            setChats((prevChats) =>
-              prevChats.map((chat) =>
-                chat._id === chatId
-                  ? {
-                      ...chat,
-                      messages: [...chat.messages, savedMessage],
-                    }
-                  : chat
-              )
-            );
-            if (chatId === activeChatId) {
-              setMessages((prevMessages) => [...prevMessages, savedMessage]);
-            }
-          } else {
-            console.error('Failed to save message');
+  
+          // Find the updated chat after the state update
+          const updatedChat = updatedChats.find(c => c._id === chatId);
+  
+          // Update chat title on the server if this is the first user message
+          if (messageData.isUser && updatedChat && updatedChat.messages.length === 1) {
+            fetchWithAuth(`/api/chats/${chatId}/update-title`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title: messageData.message.slice(0, 50) }),
+            }).catch(error => console.error('Failed to update chat title:', error));
           }
-        } catch (error) {
-          console.error('Error saving message:', error);
+  
+          return updatedChats;
+        });
+  
+        if (chatId === activeChatId) {
+          setMessages((prevMessages) => [...prevMessages, savedMessage]);
         }
-      }, [fetchWithAuth, activeChatId]);
+      } else {
+        console.error('Failed to save message');
+      }
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
+  }, [fetchWithAuth, activeChatId]);
+  
+
+
+  const handleSelectChat = useCallback(async (chatId: string) => {
+    setActiveChatId(chatId);
+    setIsLoading(true);
+    try {
+      const response = await fetchWithAuth(`/api/messages/${chatId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages);
+      } else {
+        console.error('Failed to fetch messages');
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      setMessages([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchWithAuth]);
 
 
   const handleLogout = useCallback(() => {

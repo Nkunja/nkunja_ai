@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const messages = await Message.find({ chatId });
+    console.log(messages);
 
     res.status(200).json({ messages });
   } catch (error: any) {

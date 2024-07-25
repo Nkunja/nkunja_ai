@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import { useChat } from '../hooks/useChat';
 
-interface Chat {
+export interface Chat {
   _id: string;  
   title: string;
   messages: { message: string; isUser: boolean }[];
@@ -16,7 +16,7 @@ interface Message {
 interface ChatContextType {
   chats: Chat[];
   messages: Message[];  
-  activeChatId: string | null;
+  activeChatId: string;
   isAuthenticated: boolean;
   fetchChats: () => Promise<void>;  
   handleNewChat: () => Promise<void>;
