@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(''); 
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -21,11 +22,11 @@ const Login = () => {
         router.push('/');
       } else {
         const data = await res.json();
-        alert(data.message);
+        setErrorMessage(data.message || 'Login failed. Please try again.');
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('An error occurred. Please try again.');
+      setErrorMessage('An error occurred. Please try again.');
     }
   };
 
@@ -35,6 +36,11 @@ const Login = () => {
 
   return (
     <div className="space-y-4">
+      {errorMessage && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <span className="block sm:inline">{errorMessage}</span>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="email"
@@ -59,7 +65,6 @@ const Login = () => {
       <p className="text-center">
         Don't have an account?{' '}
         <button onClick={handleRegisterRedirect} className="text-blue-500 underline">
-
           Register here
         </button>
       </p>

@@ -6,10 +6,12 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(''); 
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -20,52 +22,56 @@ const Register = () => {
         router.push('/login');
       } else {
         const data = await res.json();
-        alert(data.message);
+        setErrorMessage(data.message || 'Registration failed. Please try again.');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      alert('An error occurred. Please try again.');
+      setErrorMessage('An error occurred. Please try again.');
     }
   };
 
   return (
     <div className="space-y-4">
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
-        required
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        required
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        required
-        className="w-full p-2 border rounded"
-      />
-      <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">
-        Register
-      </button>
-    </form>
-    <p className="text-center">
+      {errorMessage && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <span className="block sm:inline">{errorMessage}</span>
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+          required
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          required
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          required
+          className="w-full p-2 border rounded"
+        />
+        <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">
+          Register
+        </button>
+      </form>
+      <p className="text-center">
         Already have an account?{' '}
-        <Link href="/register" className="text-blue-500 underline">
+        <Link href="/login" className="text-blue-500 underline">
           Login
         </Link>
       </p>
-    
     </div>
   );
 };

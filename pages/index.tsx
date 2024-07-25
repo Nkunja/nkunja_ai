@@ -1,8 +1,7 @@
 import { NextPage } from 'next';
 import Layout from '../components/Layout';
 import AIChat from '../components/AIChat';
-import Sidebar from '../components/Sidebar';
-import { ChatProvider } from '../contexts/ChatContext';
+
 
 const Home: NextPage = () => {
   return (

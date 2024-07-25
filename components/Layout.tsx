@@ -1,6 +1,7 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import Head from 'next/head';
 import Sidebar from './Sidebar';
+import { useRouter } from 'next/router';
 import { useChatContext } from '../contexts/ChatContext';
 
 interface LayoutProps {
@@ -9,6 +10,14 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { chats, isAuthenticated, handleNewChat, handleSelectChat, handleLogout } = useChatContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, router]);
+
 
   if (!isAuthenticated) {
     return null;
