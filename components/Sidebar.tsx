@@ -20,8 +20,13 @@ const Sidebar : React.FC<SidebarProps> = () => {
   return (
     <div className={`flex flex-col ${isCollapsed ? 'w-16' : 'w-64'} bg-gray-800 text-white p-4 transition-width duration-300`}>
       <button
+            className="flex items-center justify-center w-full mb-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
+          >
+          Nkunja AI
+          </button>
+      <button
         onClick={toggleCollapse}
-        className="flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mb-4"
+        className="flex items-center justify-center bg-gray-700 hover:bg-gray-600 w-full text-white font-bold py-2 px-4 rounded mb-4"
       >
         {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
       </button>

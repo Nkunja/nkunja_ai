@@ -5,25 +5,53 @@ import { generateResponse } from '../utils/api';
 import { useChatContext } from '../contexts/ChatContext';
 
 const AIChat = () => {
-  const { activeChatId, chats, messages, handleNewMessage } = useChatContext();
+  const { activeChatId, chats, messages, handleNewMessage, handleNewChat } = useChatContext();
   const [isLoading, setIsLoading] = useState(false);
 
   const activeChat = chats.find(chat => chat._id === activeChatId);
 
+  const chatCards = [
+    { emoji: '🌟', text: 'Tell me a story' },
+    { emoji: '🧠', text: 'Explain a complex topic' },
+    { emoji: '🎨', text: 'Describe a painting' },
+    { emoji: '🍳', text: 'Share a recipe' },
+  ];
+
+  const handleCardClick = async (prompt: string) => {
+    const newChatId = await handleNewChat();
+    handleNewMessage(newChatId, { message: prompt, isUser: true });
+  };
+
   if (!activeChat) {
-    return <div className="flex-1 flex items-center justify-center text-white">Select a chat to start messaging</div>;
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center h-full">
+        <h2 className="text-2xl font-bold mb-8 text-white">Start a new chat</h2>
+        <div className="grid grid-cols-2 gap-6 max-w-md">
+          {chatCards.map((card, index) => (
+            <button
+              key={index}
+              className="bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col items-center"
+              onClick={() => handleCardClick(card.text)}
+            >
+              <span className="text-5xl mb-3">{card.emoji}</span>
+              <span className="text-gray-800 text-center text-lg">{card.text}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   }
 
-  const handleSubmit = async (input: string) => {
-    await handleNewMessage(activeChatId, { message: input, isUser: true });
+  const handleSubmit = async (input: string, chatId = activeChatId) => {
+    await handleNewMessage(chatId, { message: input, isUser: true });
     setIsLoading(true);
 
     try {
       const result = await generateResponse(input);
-      await handleNewMessage(activeChatId, { message: result, isUser: false });
+      await handleNewMessage(chatId, { message: result, isUser: false });
     } catch (error) {
       console.error('Error:', error);
-      await handleNewMessage(activeChatId, { message: 'An error occurred. Please try again.', isUser: false });
+      await handleNewMessage(chatId, { message: 'An error occurred. Please try again.', isUser: false });
     } finally {
       setIsLoading(false);
     }
