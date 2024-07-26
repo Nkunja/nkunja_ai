@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Missing chatId or title' });
     }
 
-    const db = await connectDb();
+    const db: any = await connectDb();
 
     let query;
     if (ObjectId.isValid(chatId as string)) {
