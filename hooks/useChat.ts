@@ -79,14 +79,45 @@ export const useChat = () => {
         const createdChat = await response.json();
         setChats((prevChats) => [...prevChats, { ...newChat, ...createdChat }]);
         setActiveChatId(newChatId);
+        return newChatId; // Return the new chat ID
       } else {
         const errorData = await response.json();
         console.error('Failed to create chat:', errorData.message);
+        return null; // Return null if chat creation failed
       }
     } catch (error) {
       console.error('Error creating chat:', error);
+      return null; // Return null if there was an error
     }
   }, [fetchWithAuth]);
+
+  // const handleNewChat = useCallback(async () => {
+  //   const newChatId = new Date().getTime().toString();
+  //   const newChat = {
+  //     _id: newChatId,
+  //     title: "New Chat",
+  //     messages: [],
+  //   };
+  
+  //   try {
+  //     const response = await fetchWithAuth('/api/chats/create', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ id: newChatId, title: "New Chat" }),
+  //     });
+  
+  //     if (response.ok) {
+  //       const createdChat = await response.json();
+  //       setChats((prevChats) => [...prevChats, { ...newChat, ...createdChat }]);
+  //       setActiveChatId(newChatId);
+  //     } else {
+  //       const errorData = await response.json();
+  //       console.error('Failed to create chat:', errorData.message);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error creating chat:', error);
+  //   }
+  // }, [fetchWithAuth]);
 
 
   const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
