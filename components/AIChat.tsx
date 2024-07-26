@@ -17,9 +17,19 @@ const AIChat = () => {
     { emoji: '🍳', text: 'Share a recipe' },
   ];
 
+  // const handleCardClick = async (prompt: string) => {
+  //   const newChatId = await handleNewChat();
+  //   handleNewMessage(newChatId, { message: prompt, isUser: true });
+  // };
+
   const handleCardClick = async (prompt: string) => {
     const newChatId = await handleNewChat();
-    handleNewMessage(newChatId, { message: prompt, isUser: true });
+    if (newChatId !== null) {
+      handleNewMessage(newChatId, { message: prompt, isUser: true });
+    } else {
+      console.error('Failed to create new chat');
+      // Optionally, you can show an error message to the user here
+    }
   };
 
   // const handleCardClick = async (prompt: string) => {

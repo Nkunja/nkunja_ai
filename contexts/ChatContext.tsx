@@ -20,7 +20,7 @@ interface ChatContextType {
   isAuthenticated: boolean;
   fetchChats: () => Promise<void>;  
   // handleNewChat: () => Promise<void>;
-  handleNewChat: () => Promise<string | ''>;
+  handleNewChat: () => Promise<string | null>;
   handleSelectChat: (chatId: string) => Promise<void>;  
   getActiveChat: () => Chat | null;  
   handleNewMessage: (chatId: string, messageData: { message: string; isUser: boolean }) => Promise<void>;  
