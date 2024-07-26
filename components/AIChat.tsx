@@ -77,7 +77,7 @@ const AIChat = () => {
   return (
     <div className="flex flex-col h-full">
       <h1 className="text-3xl font-bold mb-6 text-center text-white">{activeChat.title}</h1>
-      <div className="flex-grow bg-white p-4 rounded-lg shadow-lg overflow-y-auto font-sans">
+      <div className="flex-grow bg-gray-900 p-4 rounded-lg shadow-lg overflow-y-auto font-sans">
         {Array.isArray(messages) && messages.length > 0 ? (
           messages.map((message, index) => (
             <ChatResponse key={index} message={message.message} isUser={message.isUser} />
