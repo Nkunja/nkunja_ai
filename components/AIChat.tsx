@@ -17,17 +17,17 @@ const AIChat = () => {
     { emoji: '🍳', text: 'Share a recipe' },
   ];
 
-  // const handleCardClick = async (prompt: string) => {
-  //   const newChatId = await handleNewChat();
-  //   handleNewMessage(newChatId, { message: prompt, isUser: true });
-  // };
-
   const handleCardClick = async (prompt: string) => {
     const newChatId = await handleNewChat();
-    if (newChatId) {
-      handleNewMessage(newChatId, { message: prompt, isUser: true });
-    }
+    handleNewMessage(newChatId, { message: prompt, isUser: true });
   };
+
+  // const handleCardClick = async (prompt: string) => {
+  //   const newChatId = await handleNewChat();
+  //   if (newChatId) {
+  //     handleNewMessage(newChatId, { message: prompt, isUser: true });
+  //   }
+  // };
 
   if (!activeChat) {
     return (

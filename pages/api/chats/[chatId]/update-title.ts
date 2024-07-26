@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '../../../../utils/auth';
 import { connectDb } from '../../../../lib/connectDb';
 import Chat from '../../../../lib/models/chatModel';
-
+import { ObjectId } from 'mongodb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PUT') {
@@ -28,10 +28,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Missing chatId or title' });
     }
 
-    const db: any = await connectDb();
+    const db = await connectDb();
+
+    let query;
+    if (ObjectId.isValid(chatId as string)) {
+      // If chatId is a valid ObjectId, use it as such
+      query = { _id: new ObjectId(chatId as string), userId: new ObjectId(userId) };
+    } else {
+      // If chatId is not a valid ObjectId, use it as is
+      query = { _id: chatId, userId: new ObjectId(userId) };
+    }
 
     const result = await db.collection('chats').updateOne(
-      { _id: new Chat(chatId as string), userId: new Chat(userId) },
+      query,
       { $set: { title } }
     );
 
