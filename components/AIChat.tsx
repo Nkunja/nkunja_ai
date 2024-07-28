@@ -17,48 +17,6 @@ const AIChat = () => {
     { emoji: '🍳', text: 'Share a recipe' },
   ];
 
-  // const handleCardClick = async (prompt: string) => {
-  //   const newChatId = await handleNewChat();
-  //   handleNewMessage(newChatId, { message: prompt, isUser: true });
-  // };
-
-  const handleCardClick = async (prompt: string) => {
-    const newChatId = await handleNewChat();
-    if (newChatId !== null) {
-      handleNewMessage(newChatId, { message: prompt, isUser: true });
-    } else {
-      console.error('Failed to create new chat');
-      // Optionally, you can show an error message to the user here
-    }
-  };
-
-  // const handleCardClick = async (prompt: string) => {
-  //   const newChatId = await handleNewChat();
-  //   if (newChatId) {
-  //     handleNewMessage(newChatId, { message: prompt, isUser: true });
-  //   }
-  // };
-
-  if (!activeChat) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center h-full">
-        <h2 className="text-2xl font-bold mb-8 text-white">Start a new chat</h2>
-        <div className="grid grid-cols-2 gap-6 max-w-md">
-          {chatCards.map((card, index) => (
-            <button
-              key={index}
-              className="bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col items-center"
-              onClick={() => handleCardClick(card.text)}
-            >
-              <span className="text-5xl mb-3">{card.emoji}</span>
-              <span className="text-gray-800 text-center text-lg">{card.text}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const handleSubmit = async (input: string, chatId = activeChatId) => {
     await handleNewMessage(chatId, { message: input, isUser: true });
     setIsLoading(true);
@@ -73,6 +31,45 @@ const AIChat = () => {
       setIsLoading(false);
     }
   };
+
+  const handleCardClick = async (prompt: string) => {
+    const newChatId = await handleNewChat();
+    if (newChatId !== null) {
+      handleNewMessage(newChatId, { message: prompt, isUser: true });
+    } else {
+      console.error('Failed to create new chat');
+      // Optionally, you can show an error message to the user here
+    }
+  };
+
+  
+
+  if (!activeChat) {
+    return (
+      <div className="flex-1 flex flex-col h-full">
+        <div className="flex-grow flex flex-col items-center justify-center">
+          <h2 className="text-2xl font-bold mb-8 text-white">Start a new chat</h2>
+          <div className="grid grid-cols-2 gap-6 max-w-md">
+            {chatCards.map((card, index) => (
+              <button
+                key={index}
+                className="bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col items-center"
+                onClick={() => handleCardClick(card.text)}
+              >
+                <span className="text-5xl mb-3">{card.emoji}</span>
+                <span className="text-gray-800 text-center text-lg">{card.text}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="mt-auto">
+          <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+        </div>
+      </div>
+    );
+  }
+
+  
 
   return (
     <div className="flex flex-col h-full">
