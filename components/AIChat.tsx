@@ -17,6 +17,8 @@ const AIChat = () => {
     { emoji: '🍳', text: 'Share a recipe' },
   ];
 
+  // TODO: Add a functionality to initiate chart directly by clicking on the chat card
+
   const handleSubmit = async (input: string, chatId = activeChatId) => {
     await handleNewMessage(chatId, { message: input, isUser: true });
     setIsLoading(true);
