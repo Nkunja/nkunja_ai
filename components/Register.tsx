@@ -31,47 +31,50 @@ const Register = () => {
   };
 
   return (
-    <div className="space-y-4">
-      {errorMessage && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{errorMessage}</span>
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Name"
-          required
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          required
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-          className="w-full p-2 border rounded"
-        />
-        <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">
-          Register
-        </button>
-      </form>
-      <p className="text-center">
-        Already have an account?{' '}
-        <Link href="/login" className="text-blue-500 underline">
-          Login
-        </Link>
-      </p>
+    <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-gray-900">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h2 className="text-3xl font-bold mb-6 text-center text-white">Register</h2>
+        {errorMessage && (
+          <div className="bg-red-500 text-white px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{errorMessage}</span>
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name"
+            required
+            className="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+          />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+            className="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+            className="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+          />
+          <button type="submit" className="w-full p-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+            Register
+          </button>
+        </form>
+        <p className="text-center mt-4 text-gray-300">
+          Already have an account?{' '}
+          <Link href="/login" className="text-blue-400 hover:underline">
+            Login
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };
