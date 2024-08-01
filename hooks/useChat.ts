@@ -34,7 +34,10 @@ export const useChat = () => {
     try {
       const response = await fetch('/api/auth/status', { 
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
       const data = await response.json();
       console.log('Auth status response:', data); // Add this line for debugging
@@ -56,9 +59,9 @@ export const useChat = () => {
     }
   }, [router]);
 
-  // useEffect(() => {
-  //   checkAuthStatus();
-  // }, [checkAuthStatus]);
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   const fetchChats = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -215,10 +218,11 @@ export const useChat = () => {
       });
 
       const data = await response.json();
-      console.log('Login response:', data); // Add this line for debugging
+      console.log('Login response:', data); // Debugging line
 
       if (response.ok) {
         console.log('Login successful');
+        localStorage.setItem('token', data.token); // Add this line
         await checkAuthStatus();
         router.push('/chat');
       } else {
@@ -233,10 +237,10 @@ export const useChat = () => {
   }, [router, checkAuthStatus]);
 
   const handleLogout = useCallback(() => {
-    // The server will clear the HttpOnly cookie
     fetch('/api/auth/logout', { method: 'POST' })
       .then(() => {
         setIsAuthenticated(false);
+        localStorage.removeItem('token'); // Add this line
         router.push('/login');
       })
       .catch(error => {

@@ -6,9 +6,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const token = req.cookies.token;
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
-  console.log('Token from cookie in status check:', token); // Add this line for debugging
+  console.log('Token in status check:', token); // Debugging line
 
   if (!token) {
     return res.status(401).json({ message: 'Not authenticated' });

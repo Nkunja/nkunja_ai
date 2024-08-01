@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { verifyToken } from './utils/auth';
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value;
+  const token = request.cookies.get('token')?.value || request.headers.get('authorization')?.split(' ')[1];
 
   // List of paths that don't require authentication
   const publicPaths = ['/', '/login', '/register', '/signup'];
