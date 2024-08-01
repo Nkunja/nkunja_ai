@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { setAuthToken } from '../utils/fetchWithAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -19,7 +20,8 @@ const Login = () => {
       });
       if (res.ok) {
         const { token } = await res.json();
-        document.cookie = `token=${token}; path=/; max-age=3600; SameSite=Strict; Secure`;
+        setAuthToken(token);
+        console.log('Token set:', token); // Add this line for debugging
         router.push('/');
       } else {
         const data = await res.json();
