@@ -30,7 +30,7 @@ export const useChat = () => {
     return chats.find(chat => chat._id === activeChatId) || null;
   }, [chats, activeChatId]);
 
-  const checkAuth = useCallback(async () => {
+  const checkAuth = useCallback(async (): Promise<boolean> => {
     try {
       const response = await fetch('/api/auth/status', { 
         method: 'GET',
@@ -42,20 +42,18 @@ export const useChat = () => {
       const data = await response.json();
       console.log('Auth status response:', data);
 
-      if (data.isAuthenticated) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        if (router.pathname !== '/login') {
-          router.push('/login');
-        }
+      setIsAuthenticated(data.isAuthenticated);
+      if (!data.isAuthenticated && router.pathname !== '/login') {
+        router.push('/login');
       }
+      return data.isAuthenticated;
     } catch (error) {
       console.error('Error checking auth status:', error);
       setIsAuthenticated(false);
       if (router.pathname !== '/login') {
         router.push('/login');
       }
+      return false;
     }
   }, [router]);
 
@@ -84,13 +82,12 @@ export const useChat = () => {
   }, [fetchChats, isAuthenticated]);
 
   const handleNewChat = useCallback(async () => {
-    await checkAuthStatus().then((authStatus) => {
-      if (!authStatus.isAuthenticated) {
-        console.error('User is not authenticated');
-        router.push('/login');
+    const authStatus = await checkAuth();
+    if (!authStatus) {
+      console.error('User is not authenticated');
+      router.push('/login');
       return null;
     }
-    });
 
     const newChatId = new Date().getTime().toString();
     const newChat = {

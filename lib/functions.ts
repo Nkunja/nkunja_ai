@@ -1,6 +1,4 @@
 'use server';
-
-import Chat from "./models/chatModel";
 import { cookies } from 'next/headers';
 import { verifyToken } from '../utils/auth';
 
