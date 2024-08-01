@@ -56,9 +56,9 @@ export const useChat = () => {
     }
   }, [router]);
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+  // useEffect(() => {
+  //   checkAuthStatus();
+  // }, [checkAuthStatus]);
 
   const fetchChats = useCallback(async () => {
     if (!isAuthenticated) return;
