@@ -1,16 +1,28 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { checkAuthStatus } from '../../../lib/functions';
+import { verifyToken } from '../../../utils/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const authStatus = await checkAuthStatus();
+  const token = req.cookies.token;
 
-  if (authStatus.isAuthenticated) {
-    res.status(200).json(authStatus);
-  } else {
-    res.status(401).json(authStatus);
+  console.log('Token from cookie in status check:', token); // Add this line for debugging
+
+  if (!token) {
+    return res.status(401).json({ message: 'Not authenticated' });
+  }
+
+  try {
+    const userId = await verifyToken(token);
+    if (userId) {
+      res.status(200).json({ message: 'Authenticated', userId });
+    } else {
+      res.status(401).json({ message: 'Invalid token' });
+    }
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 }
