@@ -8,26 +8,23 @@ export async function middleware(request: NextRequest) {
   // List of paths that don't require authentication
   const publicPaths = ['/', '/login', '/register', '/signup'];
 
+  // If no token and trying to access a protected route, redirect to login
   if (!token && !publicPaths.includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (token && publicPaths.includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
+  // If token exists, verify it
   if (token) {
-    try {
-      const userId = await verifyToken(token);
-      if (!userId) {
-        return NextResponse.redirect(new URL('/login', request.url));
-      }
-    } catch (error) {
-      console.error('Token verification error:', error);
-      return NextResponse.redirect(new URL('/login', request.url));
+    const userId = await verifyToken(token);
+    if (!userId) {
+      // If token is invalid, clear it and redirect to login
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      response.cookies.delete('token');
+      return response;
     }
   }
 
+  // Allow the request to proceed
   return NextResponse.next();
 }
 

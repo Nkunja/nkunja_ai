@@ -1,18 +1,21 @@
-import jwt from 'jsonwebtoken';
+import { jwtVerify, SignJWT } from 'jose';
 
-export const verifyToken = (token: string | undefined): Promise<string | null> => {
-  return new Promise((resolve) => {
-    if (!token) {
-      resolve(null);
-      return;
-    }
+const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET);
 
-    jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
-      if (err) {
-        resolve(null);
-      } else {
-        resolve((decoded as any).userId);
-      }
-    });
-  });
-};
+export async function verifyToken(token: string): Promise<string | null> {
+  try {
+    const { payload } = await jwtVerify(token, SECRET_KEY);
+    return payload.sub as string;
+  } catch (error: any) {
+    console.error('Token verification failed:', error.message, error.stack);
+    return null;
+  }
+}
+
+export async function signToken(userId: string): Promise<string> {
+  return new SignJWT({ sub: userId })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('1h')
+    .sign(SECRET_KEY);
+}

@@ -30,7 +30,38 @@ export const useChat = () => {
     return chats.find(chat => chat._id === activeChatId) || null;
   }, [chats, activeChatId]);
 
+  const checkAuthStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/status', { 
+        method: 'GET',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      console.log('Auth status response:', data); // Add this line for debugging
+
+      if (response.ok) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        if (router.pathname !== '/login') {
+          router.push('/login');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      setIsAuthenticated(false);
+      if (router.pathname !== '/login') {
+        router.push('/login');
+      }
+    }
+  }, [router]);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
   const fetchChats = useCallback(async () => {
+    if (!isAuthenticated) return;
     setIsLoading(true);
     try {
       const response = await fetchWithAuth('/api/chats');
@@ -45,14 +76,21 @@ export const useChat = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    fetchChats();
-  }, [fetchChats]);
-
+    if (isAuthenticated) {
+      fetchChats();
+    }
+  }, [fetchChats, isAuthenticated]);
 
   const handleNewChat = useCallback(async () => {
+    if (!isAuthenticated) {
+      console.error('User is not authenticated');
+      router.push('/login');
+      return null;
+    }
+
     const newChatId = new Date().getTime().toString();
     const newChat = {
       _id: newChatId,
@@ -63,7 +101,6 @@ export const useChat = () => {
     try {
       const response = await fetchWithAuth('/api/chats/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: newChatId, title: "New Chat" }),
       });
   
@@ -71,17 +108,18 @@ export const useChat = () => {
         const createdChat = await response.json();
         setChats((prevChats) => [...prevChats, { ...newChat, ...createdChat }]);
         setActiveChatId(newChatId);
-        return newChatId; // Return the new chat ID
+        router.push(`/chat/${newChatId}`);
+        return newChatId;
       } else {
         const errorData = await response.json();
         console.error('Failed to create chat:', errorData.message);
-        return null; // Return null if chat creation failed
+        return null;
       }
     } catch (error) {
       console.error('Error creating chat:', error);
-      return null; // Return null if there was an error
+      return null;
     }
-  }, [fetchWithAuth]);
+  }, [isAuthenticated, router]);
 
 
   const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
@@ -164,10 +202,43 @@ export const useChat = () => {
   }, [fetchWithAuth]);
 
 
+  const handleLogin = useCallback(async (email: string, password: string) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+      console.log('Login response:', data); // Add this line for debugging
+
+      if (response.ok) {
+        console.log('Login successful');
+        await checkAuthStatus();
+        router.push('/chat');
+      } else {
+        const errorData = await response.json();
+        console.error('Login failed:', errorData.message);
+        setError(errorData.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('An error occurred during login');
+    }
+  }, [router, checkAuthStatus]);
+
   const handleLogout = useCallback(() => {
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    setIsAuthenticated(false);
-    router.push('/login');
+    // The server will clear the HttpOnly cookie
+    fetch('/api/auth/logout', { method: 'POST' })
+      .then(() => {
+        setIsAuthenticated(false);
+        router.push('/login');
+      })
+      .catch(error => {
+        console.error('Logout error:', error);
+      });
   }, [router]);
 
   return {
@@ -180,6 +251,9 @@ export const useChat = () => {
     handleSelectChat,
     getActiveChat,
     handleNewMessage,
+    handleLogin,
     handleLogout,
+    error,
+    checkAuthStatus,
   };
 };
