@@ -93,7 +93,7 @@ export const useChat = () => {
       router.push('/login');
       return null;
     }
-
+// REVERT
     const newChatId = new Date().getTime().toString();
     const newChat = {
       _id: newChatId,
