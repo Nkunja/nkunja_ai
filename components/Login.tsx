@@ -19,7 +19,7 @@ const Login = () => {
       });
       if (res.ok) {
         const { token } = await res.json();
-        localStorage.setItem('token', token);
+        document.cookie = `token=${token}; path=/; max-age=3600; SameSite=Strict; Secure`;
         router.push('/');
       } else {
         const data = await res.json();

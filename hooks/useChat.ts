@@ -51,14 +51,6 @@ export const useChat = () => {
     fetchChats();
   }, [fetchChats]);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      router.push('/login');
-    }
-  }, [router]);
 
   const handleNewChat = useCallback(async () => {
     const newChatId = new Date().getTime().toString();
@@ -90,34 +82,6 @@ export const useChat = () => {
       return null; // Return null if there was an error
     }
   }, [fetchWithAuth]);
-
-  // const handleNewChat = useCallback(async () => {
-  //   const newChatId = new Date().getTime().toString();
-  //   const newChat = {
-  //     _id: newChatId,
-  //     title: "New Chat",
-  //     messages: [],
-  //   };
-  
-  //   try {
-  //     const response = await fetchWithAuth('/api/chats/create', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ id: newChatId, title: "New Chat" }),
-  //     });
-  
-  //     if (response.ok) {
-  //       const createdChat = await response.json();
-  //       setChats((prevChats) => [...prevChats, { ...newChat, ...createdChat }]);
-  //       setActiveChatId(newChatId);
-  //     } else {
-  //       const errorData = await response.json();
-  //       console.error('Failed to create chat:', errorData.message);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error creating chat:', error);
-  //   }
-  // }, [fetchWithAuth]);
 
 
   const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
@@ -178,58 +142,6 @@ export const useChat = () => {
     }
   }, [fetchWithAuth, activeChatId]);
   
-  // const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
-  //   try {
-  //     const response = await fetchWithAuth('/api/messages/create', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ chatId, ...messageData }),
-  //     });
-  
-  //     if (response.ok) {
-  //       const savedMessage: Message = await response.json();
-  //       setChats((prevChats) =>
-  //         prevChats.map((chat) => {
-  //           if (chat._id === chatId) {
-  //             const updatedMessages = Array.isArray(chat.messages) 
-  //               ? [...chat.messages, savedMessage]
-  //               : [savedMessage];
-              
-  //             // Update chat title if this is the first user message
-  //             const newTitle = updatedMessages.length === 1 && messageData.isUser
-  //               ? messageData.message.slice(0, 50) + (messageData.message.length > 20 ? '...' : '')
-  //               : chat.title;
-              
-  //             return {
-  //               ...chat,
-  //               title: newTitle,
-  //               messages: updatedMessages,
-  //             };
-  //           }
-  //           return chat;
-  //         })
-  //       );
-  //       if (chatId === activeChatId) {
-  //         setMessages((prevMessages) => [...prevMessages, savedMessage]);
-  //       }
-  
-  //       // Update chat title on the server if this is the first user message
-  //       const updatedChat = chats.find(c => c._id === chatId);
-  //       if (messageData.isUser && updatedChat && updatedChat.messages.length === 1) {
-  //         await fetchWithAuth(`/api/chats/${chatId}/update-title`, {
-  //           method: 'PUT',
-  //           headers: { 'Content-Type': 'application/json' },
-  //           body: JSON.stringify({ title: messageData.message.slice(0, 50) }),
-  //         });
-  //       }
-  //     } else {
-  //       console.error('Failed to save message');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error saving message:', error);
-  //   }
-  // }, [fetchWithAuth, activeChatId, chats]);
-
 
   const handleSelectChat = useCallback(async (chatId: string) => {
     setActiveChatId(chatId);
@@ -253,7 +165,7 @@ export const useChat = () => {
 
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem('token');
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     setIsAuthenticated(false);
     router.push('/login');
   }, [router]);
