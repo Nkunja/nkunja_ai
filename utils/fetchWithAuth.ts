@@ -23,7 +23,7 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            credentials: 'include', // Add this line
+            credentials: 'include',
         };
     
         const mergedOptions = {

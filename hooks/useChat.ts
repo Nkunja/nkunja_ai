@@ -101,6 +101,9 @@ export const useChat = () => {
     try {
       const response = await fetchWithAuth('/api/chats/create', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ id: newChatId, title: "New Chat" }),
       });
   
@@ -119,7 +122,7 @@ export const useChat = () => {
       console.error('Error creating chat:', error);
       return null;
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, fetchWithAuth]);
 
 
   const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
