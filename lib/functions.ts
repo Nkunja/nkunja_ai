@@ -1,22 +1,27 @@
 'use server';
 
 import Chat from "./models/chatModel";
+import { cookies } from 'next/headers';
+import { verifyToken } from '../utils/auth';
 
 
-export async function SaveChat(title: string){
+export async function checkAuthStatus() {
+    const cookieStore = cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+        return { isAuthenticated: false, message: 'Not authenticated' };
+    }
+
     try {
-        const chat = new Chat({
-            title: title,
-          })
-      
-          await chat.Save();
-          console.log('chat saved', chat);
-          return {
-            id: chat._id,
-            title: chat.title,
-          }
-    }catch(e: any){
-        console.error('Error creating chat:', e);
-        throw new Error('Failed to create chat'); 
+        const userId = await verifyToken(token);
+        if (userId) {
+            return { isAuthenticated: true, message: 'Authenticated', userId };
+        } else {
+            return { isAuthenticated: false, message: 'Invalid token' };
+        }
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        return { isAuthenticated: false, message: 'Server error' };
     }
 }
