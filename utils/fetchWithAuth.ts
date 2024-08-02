@@ -1,9 +1,12 @@
 let inMemoryToken: string | null = null;
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('token');
+  
   const defaultOptions: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
     },
     credentials: 'include',
   };

@@ -69,14 +69,17 @@ export const useChat = () => {
         const data = await response.json();
         setChats(data.chats);
       } else {
-        setError('Failed to fetch chats');
+        const errorData = await response.json();
+        console.error('Failed to fetch chats:', errorData);
+        setError(`Failed to fetch chats: ${errorData.message}`);
       }
-    } catch (error) {
-      setError('Error fetching chats');
+    } catch (error: any) {
+      console.error('Error fetching chats:', error);
+      setError(`Error fetching chats: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchWithAuth]);
 
   useEffect(() => {
     if (isAuthenticated) {
