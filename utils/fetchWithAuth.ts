@@ -1,3 +1,6 @@
+import { withCors } from '../lib/withCors';
+import { NextApiHandler } from 'next';
+
 let inMemoryToken: string | null = null;
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
@@ -29,6 +32,18 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 
   return response;
 };
+
+const fetchWithAuthWrapper: NextApiHandler = async (req, res) => {
+  const response = await fetchWithAuth(req.url!, {
+    method: req.method as string,
+    headers: req.headers as HeadersInit,
+    body: req.body ? JSON.stringify(req.body) : undefined,
+  });
+  
+  res.status(response.status).json(await response.json());
+};
+
+export const withCorsAuthFetch = withCors(fetchWithAuthWrapper);
 
 export const setAuthToken = (token: string) => {
   inMemoryToken = token;
