@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // For protected routes, check for token in Authorization header
-  const token = request.headers.get('authorization')?.split(' ')[1];
+  const token = request.cookies.get('token')?.value;
 
   if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));

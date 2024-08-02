@@ -2,10 +2,11 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { connectDb } from '../../../lib/connectDb';
 import User from '../../../lib/models/userModel';
 import bcrypt from 'bcryptjs';
+import { withCors } from '../../../lib/withCors';
 
 connectDb();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withCors(async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -59,4 +60,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-}
+});

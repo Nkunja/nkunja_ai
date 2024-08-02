@@ -1,12 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { connectDb } from '../../lib/connectDb';
 import Chat from '../../lib/models/chatModel';
+import { withCors } from '../../lib/withCors';
 
 connectDb();
 
 
 
-export default async function POST(req: NextApiRequest, res: NextApiResponse) {
+    export default withCors(async function POST(req: NextApiRequest, res: NextApiResponse) {
     const { title } = await req.body;
     try {
         const chat = new Chat({
@@ -20,4 +21,4 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
         console.error('Error creating chat:', e);
         res.status(500).json({ error: 'Failed to create chat' });
     }
-}
+});

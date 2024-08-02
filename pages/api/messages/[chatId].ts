@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { connectDb } from '../../../lib/connectDb';
 import Message from '../../../lib/models/messageModel';
+import { withCors } from '../../../lib/withCors'; 
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withCors(async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { chatId } = req.query;
 
   await connectDb();
@@ -13,4 +14,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     res.status(500).json({ error: 'Unable to fetch messages' });
   }
-}
+});

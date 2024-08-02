@@ -32,18 +32,14 @@ export const useChat = () => {
 
   const checkAuth = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token') || document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
       const response = await fetch('/api/auth/status', { 
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
       });
       const data = await response.json();
       console.log('Auth status response:', data);
-
-      if (data.isAuthenticated) {
+  
+      if (data.userId) {
         setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);

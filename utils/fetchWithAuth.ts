@@ -1,19 +1,9 @@
 let inMemoryToken: string | null = null;
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('token') || '';
-  
-  console.log('Token used for request:', token); // Debugging line
-
-  if (!token) {
-    console.error('No authentication token found');
-    throw new Error('No authentication token found');
-  }
-
   const defaultOptions: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
     },
     credentials: 'include',
   };

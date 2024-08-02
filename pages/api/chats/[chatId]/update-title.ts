@@ -3,8 +3,9 @@ import { verifyToken } from '../../../../utils/auth';
 import { connectDb } from '../../../../lib/connectDb';
 import Chat from '../../../../lib/models/chatModel';
 import { ObjectId } from 'mongodb';
+import { withCors } from '../../../../lib/withCors';  
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withCors(async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PUT') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -53,4 +54,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error updating chat title:', error);
     res.status(500).json({ message: 'Server error' });
   }
-}
+});
