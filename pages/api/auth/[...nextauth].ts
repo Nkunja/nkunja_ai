@@ -1,16 +1,13 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
-import { Adapter } from "next-auth/adapters";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import { clientPromise, connectDb } from "../../../lib/connectDb";
+import clientPromise from "../../../lib/connectDb";
 import User from "../../../lib/models/userModel";
 import { verifyPassword } from "../../../utils/auth";
 
-// Ensure database connection
-connectDb();
-
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise) as Adapter,
+  secret: process.env.NEXTAUTH_SECRET,
+  adapter: MongoDBAdapter(clientPromise) as any,
   providers: [
     CredentialsProvider({
       name: "Credentials",
