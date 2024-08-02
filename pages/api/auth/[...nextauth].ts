@@ -16,18 +16,23 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return null;
+          }
+          const user = await User.findOne({ email: credentials.email });
+          if (!user) {
+            return null;
+          }
+          const isValid = await verifyPassword(credentials.password, user.password);
+          if (!isValid) {
+            return null;
+          }
+          return { id: user._id.toString(), email: user.email, name: user.name };
+        } catch (error) {
+          console.error('Authorization error:', error);
           return null;
         }
-        const user = await User.findOne({ email: credentials.email });
-        if (!user) {
-          return null;
-        }
-        const isValid = await verifyPassword(credentials.password, user.password);
-        if (!isValid) {
-          return null;
-        }
-        return { id: user._id.toString(), email: user.email, name: user.name };
       }
     })
   ],
