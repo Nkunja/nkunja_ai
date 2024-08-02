@@ -1,26 +1,24 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken } from '../../../../utils/auth';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../auth/[...nextauth]";
 import { connectDb } from '../../../../lib/connectDb';
 import Chat from '../../../../lib/models/chatModel';
 import { ObjectId } from 'mongodb';
-import { withCors } from '../../../../lib/withCors';  
+import { withCors } from '../../../../lib/withCors';
 
 export default withCors(async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PUT') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  // Verify the user's token
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
   try {
-    const userId = await verifyToken(token);
-    if (!userId) {
-      return res.status(401).json({ message: 'Invalid token' });
+    const session = await getServerSession(req, res, authOptions);
+
+    if (!session || !session.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
+
+    const userId = session.user.id;
 
     const { chatId } = req.query;
     const { title } = req.body;
@@ -33,10 +31,8 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
 
     let query;
     if (ObjectId.isValid(chatId as string)) {
-      // If chatId is a valid ObjectId, use it as such
       query = { _id: new ObjectId(chatId as string), userId: new ObjectId(userId) };
     } else {
-      // If chatId is not a valid ObjectId, use it as is
       query = { _id: chatId, userId: new ObjectId(userId) };
     }
 

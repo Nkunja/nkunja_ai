@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/mongodb-adapter": "^3.4.2",
     "@google/generative-ai": "^0.15.0",
     "@vercel/node": "^3.2.7",
     "axios": "^1.7.2",

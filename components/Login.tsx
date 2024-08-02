@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { setAuthToken } from '../utils/fetchWithAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -13,19 +13,15 @@ const Login = () => {
     e.preventDefault();
     setErrorMessage('');
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
       });
-      if (res.ok) {
-        const { token } = await res.json();
-        setAuthToken(token);
-        console.log('Token set:', token);
-        router.push('/');
+      if (result?.error) {
+        setErrorMessage(result.error);
       } else {
-        const data = await res.json();
-        setErrorMessage(data.message || 'Login failed. Please try again.');
+        router.push('/');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -33,12 +29,8 @@ const Login = () => {
     }
   };
 
-  const handleRegisterRedirect = () => {
-    router.push('/register');
-  };
-
   return (
-    <div className="flex-1 flex flex-col items-center justify-center w-full min-h-screen bg-gray-900">
+    <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-gray-900">
       <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-3xl font-bold mb-6 text-center text-white">Login</h2>
         {errorMessage && (
@@ -69,9 +61,9 @@ const Login = () => {
         </form>
         <p className="text-center mt-4 text-gray-300">
           Don't have an account?{' '}
-          <button onClick={handleRegisterRedirect} className="text-blue-400 hover:underline">
-            Register here
-          </button>
+          <Link href="/register" className="text-blue-400 hover:underline">
+            Register
+          </Link>
         </p>
       </div>
     </div>

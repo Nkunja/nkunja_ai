@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken } from '../../../utils/auth';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./[...nextauth]";
 import { withCors } from '../../../lib/withCors';
 
 export default withCors(async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -7,23 +8,11 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const token = req.cookies.token;
+  const session = await getServerSession(req, res, authOptions);
 
-  console.log('Token from cookie in status check:', token); // Add this line for debugging
-
-  if (!token) {
-    return res.status(401).json({ message: 'Not authenticated' });
-  }
-
-  try {
-    const userId = await verifyToken(token);
-    if (userId) {
-      res.status(200).json({ message: 'Authenticated', userId });
-    } else {
-      res.status(401).json({ message: 'Invalid token' });
-    }
-  } catch (error) {
-    console.error('Error verifying token:', error);
-    res.status(500).json({ message: 'Server error' });
+  if (session) {
+    res.status(200).json({ message: 'Authenticated', userId: session.user.id });
+  } else {
+    res.status(401).json({ message: 'Not authenticated' });
   }
 });

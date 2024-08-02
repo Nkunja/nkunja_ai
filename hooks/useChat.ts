@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { fetchWithAuth } from '../utils/fetchWithAuth';
 import { checkAuthStatus } from '../lib/functions';
@@ -21,7 +22,8 @@ export const useChat = () => {
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
   const [messages, setMessages] = useState<Message[]>([]);
 
   const router = useRouter();
@@ -30,34 +32,13 @@ export const useChat = () => {
     return chats.find(chat => chat._id === activeChatId) || null;
   }, [chats, activeChatId]);
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await fetchWithAuth('/api/auth/status', { 
-        method: 'GET',
-      });
-      const data = await response.json();
-      console.log('Auth status response:', data);
-  
-      if (data.userId) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        if (router.pathname !== '/login') {
-          router.push('/login');
-        }
-      }
-    } catch (error) {
-      console.error('Error checking auth status:', error);
-      setIsAuthenticated(false);
-      if (router.pathname !== '/login') {
-        router.push('/login');
-      }
-    }
-  }, [router]);
-
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    } else if (status === 'authenticated') {
+      fetchChats();
+    }
+  }, [status]);
 
   const fetchChats = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -80,19 +61,12 @@ export const useChat = () => {
     }
   }, [isAuthenticated, fetchWithAuth]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchChats();
-    }
-  }, [fetchChats, isAuthenticated]);
-
   const handleNewChat = useCallback(async () => {
     if (!isAuthenticated) {
       console.error('User is not authenticated');
       router.push('/login');
       return null;
     }
-// REVERT
     const newChatId = new Date().getTime().toString();
     const newChat = {
       _id: newChatId,
@@ -207,45 +181,10 @@ export const useChat = () => {
   }, [fetchWithAuth]);
 
 
-  const handleLogin = useCallback(async (email: string, password: string) => {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-      console.log('Login response:', data);
-
-      if (response.ok) {
-        console.log('Login successful');
-        localStorage.setItem('token', data.token);
-        await checkAuth();
-        router.push('/chat');
-      } else {
-        console.error('Login failed:', data.message);
-        setError(data.message || 'Login failed');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('An error occurred during login');
-    }
-  }, [router, checkAuth]);
-
-  const handleLogout = useCallback(() => {
-    fetch('/api/auth/logout', { method: 'POST' })
-      .then(() => {
-        setIsAuthenticated(false);
-        localStorage.removeItem('token');
-        document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        router.push('/login');
-      })
-      .catch(error => {
-        console.error('Logout error:', error);
-      });
-  }, [router]);
+  const handleLogout = useCallback(async () => {
+    await signOut({ redirect: false });
+    router.push('/login');
+  }, [router, signOut]);
 
   return {
     chats,
@@ -257,9 +196,7 @@ export const useChat = () => {
     handleSelectChat,
     getActiveChat,
     handleNewMessage,
-    handleLogin,
     handleLogout,
     error,
-    checkAuth,
   };
 };
