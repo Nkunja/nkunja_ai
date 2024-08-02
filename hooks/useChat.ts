@@ -221,7 +221,6 @@ export const useChat = () => {
 
       if (response.ok) {
         console.log('Login successful');
-        setAuthToken(data.token);
         localStorage.setItem('token', data.token);
         await checkAuth();
         router.push('/chat');
