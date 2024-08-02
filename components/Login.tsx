@@ -11,7 +11,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(''); 
+    setErrorMessage('');
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -21,7 +21,7 @@ const Login = () => {
       if (res.ok) {
         const { token } = await res.json();
         setAuthToken(token);
-        console.log('Token set:', token); // Add this line for debugging
+        console.log('Token set:', token);
         router.push('/');
       } else {
         const data = await res.json();

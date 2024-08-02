@@ -32,9 +32,8 @@ export const useChat = () => {
 
   const checkAuth = useCallback(async () => {
     try {
-      const response = await fetch('/api/auth/status', { 
+      const response = await fetchWithAuth('/api/auth/status', { 
         method: 'GET',
-        credentials: 'include',
       });
       const data = await response.json();
       console.log('Auth status response:', data);
@@ -222,6 +221,7 @@ export const useChat = () => {
 
       if (response.ok) {
         console.log('Login successful');
+        setAuthToken(data.token);
         localStorage.setItem('token', data.token);
         await checkAuth();
         router.push('/chat');
