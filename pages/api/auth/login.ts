@@ -29,10 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Create and sign JWT
     const token = await signToken(user.id);
     
-    // Set the token in a HttpOnly cookie
-    res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=3600; Secure`);
-
-    res.status(200).json({ message: 'Login successful', token }); // Include token in response for client-side storage
+    res.status(200).json({ message: 'Login successful', token }); // Send token to client
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });

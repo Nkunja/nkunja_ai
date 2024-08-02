@@ -3,25 +3,26 @@ import type { NextRequest } from 'next/server';
 import { verifyToken } from './utils/auth';
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value || request.headers.get('authorization')?.split(' ')[1];
-
   // List of paths that don't require authentication
   const publicPaths = ['/', '/login', '/register', '/signup'];
 
-  // If no token and trying to access a protected route, redirect to login
-  if (!token && !publicPaths.includes(request.nextUrl.pathname)) {
+  // If it's a public path, allow the request to proceed
+  if (publicPaths.includes(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
+  // For protected routes, check for token in Authorization header
+  const token = request.headers.get('authorization')?.split(' ')[1];
+
+  if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // If token exists, verify it
-  if (token) {
-    const userId = await verifyToken(token);
-    if (!userId) {
-      // If token is invalid, clear it and redirect to login
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('token');
-      return response;
-    }
+  const userId = await verifyToken(token);
+  if (!userId) {
+    // If token is invalid, redirect to login
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Allow the request to proceed
