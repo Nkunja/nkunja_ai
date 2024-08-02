@@ -1,3 +1,7 @@
+declare global {
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
+}
+
 import { MongoClient } from "mongodb";
 
 if (!process.env.MONGO_URI) {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { fetchWithAuth } from '../utils/fetchWithAuth';
-import { checkAuthStatus } from '../lib/functions';
+
 
 interface Chat {
   _id: string;
