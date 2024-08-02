@@ -2,9 +2,8 @@ let inMemoryToken: string | null = null;
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   let token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-  
-  if (!token && inMemoryToken) {
-    token = inMemoryToken;
+  if (!token) {
+    token = localStorage.getItem('token') || '';
   }
   
   console.log('Token used for request:', token); // Debugging line

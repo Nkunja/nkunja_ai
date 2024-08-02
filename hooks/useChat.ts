@@ -32,11 +32,12 @@ export const useChat = () => {
 
   const checkAuth = useCallback(async () => {
     try {
+      const token = localStorage.getItem('token') || document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
       const response = await fetch('/api/auth/status', { 
         method: 'GET',
         credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       const data = await response.json();
@@ -240,6 +241,7 @@ export const useChat = () => {
       .then(() => {
         setIsAuthenticated(false);
         localStorage.removeItem('token');
+        document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
         router.push('/login');
       })
       .catch(error => {
