@@ -23,10 +23,15 @@ if (process.env.NODE_ENV === 'development') {
 export default clientPromise;
 
 export async function connectDb() {
-  if (mongoose.connection.readyState === 1) {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      return mongoose.connection.db;
+    }
+    await mongoose.connect(uri);
+    console.log('Mongoose connection established');
     return mongoose.connection.db;
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
   }
-  await mongoose.connect(uri);
-  console.log('Mongoose connection established');
-  return mongoose.connection.db;
 }

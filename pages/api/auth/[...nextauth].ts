@@ -18,15 +18,15 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) {
-            return null;
+            throw new Error("Email and password are required");
           }
           const user = await User.findOne({ email: credentials.email });
           if (!user) {
-            return null;
+            throw new Error("No user found with this email");
           }
           const isValid = await verifyPassword(credentials.password, user.password);
           if (!isValid) {
-            return null;
+            throw new Error("Invalid password");
           }
           return { id: user._id.toString(), email: user.email, name: user.name };
         } catch (error) {
@@ -36,9 +36,6 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  session: {
-    strategy: "jwt"
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -56,6 +53,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
+  debug: process.env.NODE_ENV === 'development',
 };
 
 export default NextAuth(authOptions);

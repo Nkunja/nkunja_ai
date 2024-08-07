@@ -1,93 +1,45 @@
 import React, { useState } from 'react';
-import { FiPlus, FiChevronLeft, FiChevronRight, FiLogOut } from 'react-icons/fi';
-import { Chat, useChatContext } from '../contexts/ChatContext';
-import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
+import { FiPlus, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { Chat } from '../contexts/ChatContext';
 
 interface SidebarProps {
   chats: Chat[];
   onSelectChat: (chatId: string) => void;
   onNewChat: () => void;
-  onLogout: () => void;
-  isAuthenticated: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = () => {
-  const { chats, activeChatId, handleSelectChat, handleNewChat, handleLogout } = useChatContext();
+const Sidebar: React.FC<SidebarProps> = ({ chats, onSelectChat, onNewChat }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const router = useRouter();
-  const { data: session, status } = useSession();
-
-  const isAuthenticated = status === 'authenticated';
-
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
-  const handleNewChatClick = () => {
-    if (isAuthenticated) {
-      handleNewChat();
-    } else {
-      router.push('/login');
-    }
-  };
-
-  const handleChatSelect = (chatId: string) => {
-    if (isAuthenticated) {
-      handleSelectChat(chatId);
-    } else {
-      router.push('/login');
-    }
-  };
 
   return (
-    <div className={`flex flex-col ${isCollapsed ? 'w-16' : 'w-64'} bg-gray-800 text-white p-4 transition-width duration-300`}>
+    <div className={`bg-gray-800 text-white transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+      <div className="flex justify-between items-center p-4">
+        {!isCollapsed && <h2 className="text-xl font-bold">Chats</h2>}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="text-white hover:text-gray-300 transition-colors"
+        >
+          {isCollapsed ? <FiChevronRight size={24} /> : <FiChevronLeft size={24} />}
+        </button>
+      </div>
       <button
-        onClick={toggleCollapse}
-        className="flex items-center justify-center bg-gray-700 hover:bg-gray-600 w-full text-white font-bold py-2 px-4 rounded mb-4"
+        onClick={onNewChat}
+        className="w-full p-2 mb-4 bg-blue-500 hover:bg-blue-600 transition-colors flex items-center justify-center"
       >
-        {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
+        <FiPlus size={24} />
+        {!isCollapsed && <span className="ml-2">New Chat</span>}
       </button>
-      {!isCollapsed && (
-        <>
-          <button
-            onClick={handleNewChatClick}
-            className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mb-4"
+      <div className="overflow-y-auto h-[calc(100vh-120px)]">
+        {chats.map((chat) => (
+          <div
+            key={chat._id}
+            onClick={() => onSelectChat(chat._id)}
+            className="p-2 hover:bg-gray-700 cursor-pointer truncate"
           >
-            <FiPlus className="mr-2" /> New Chat
-          </button>
-          
-          <div className="flex-grow overflow-y-auto">
-            {chats.map((chat) => (
-              <div
-                key={chat._id}
-                onClick={() => handleChatSelect(chat._id)}
-                className={`p-2 rounded cursor-pointer ${
-                  activeChatId === chat._id ? 'bg-gray-700' : 'hover:bg-gray-700'
-                }`}
-              >
-                {chat.title}
-              </div>
-            ))}
+            {isCollapsed ? chat.title.charAt(0) : chat.title}
           </div>
-          
-          {isAuthenticated ? (
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
-            >
-              <FiLogOut className="mr-2" /> Logout
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push('/login')}
-              className="flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4"
-            >
-              Login
-            </button>
-          )}
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 };

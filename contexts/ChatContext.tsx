@@ -18,14 +18,11 @@ interface ChatContextType {
   chats: Chat[];
   messages: Message[];  
   activeChatId: string;
-  isAuthenticated: boolean;
   fetchChats: () => Promise<void>;  
-  // handleNewChat: () => Promise<void>;
   handleNewChat: () => Promise<string | null>;
   handleSelectChat: (chatId: string) => Promise<void>;  
   getActiveChat: () => Chat | null;  
   handleNewMessage: (chatId: string, messageData: { message: string; isUser: boolean }) => Promise<void>;  
-  handleLogout: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);

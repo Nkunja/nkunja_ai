@@ -1,6 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
 import { connectDb } from '../../../lib/connectDb';
 import Chat from '../../../lib/models/chatModel';
 import { withCors } from '../../../lib/withCors';
@@ -13,16 +11,7 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
   }
 
   try {
-    const session = await getServerSession(req, res, authOptions);
-
-    if (!session || !session.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    const userId = session.user.id;
-
-    const chats = await Chat.find({ userId });
-
+    const chats = await Chat.find();
     res.status(200).json({ chats });
   } catch (error) {
     console.error('Error fetching chats:', error);

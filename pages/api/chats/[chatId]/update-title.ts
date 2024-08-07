@@ -1,6 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth/[...nextauth]";
 import { connectDb } from '../../../../lib/connectDb';
 import Chat from '../../../../lib/models/chatModel';
 import { ObjectId } from 'mongodb';
@@ -12,14 +10,6 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
   }
 
   try {
-    const session = await getServerSession(req, res, authOptions);
-
-    if (!session || !session.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    const userId = session.user.id;
-
     const { chatId } = req.query;
     const { title } = req.body;
 
@@ -31,9 +21,9 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
 
     let query;
     if (ObjectId.isValid(chatId as string)) {
-      query = { _id: new ObjectId(chatId as string), userId: new ObjectId(userId) };
+      query = { _id: new ObjectId(chatId as string) };
     } else {
-      query = { _id: chatId, userId: new ObjectId(userId) };
+      query = { _id: chatId };
     }
 
     const result = await db.collection('chats').updateOne(
@@ -42,7 +32,7 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
     );
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({ message: 'Chat not found or user not authorized' });
+      return res.status(404).json({ message: 'Chat not found' });
     }
 
     res.status(200).json({ message: 'Chat title updated successfully' });
