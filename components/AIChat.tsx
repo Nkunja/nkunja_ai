@@ -8,11 +8,11 @@ const AIChat = () => {
   const { messages, activeChatId, handleNewMessage, handleNewChat } = useChatContext();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (!activeChatId) {
-      handleNewChat();
-    }
-  }, [activeChatId, handleNewChat]);
+  // useEffect(() => {
+  //   if (!activeChatId) {
+  //     handleNewChat();
+  //   }
+  // }, [activeChatId, handleNewChat]);
 
   const handleSubmit = async (input: string) => {
     if (!activeChatId) return;

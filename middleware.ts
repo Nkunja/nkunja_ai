@@ -1,23 +1,25 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { verifyToken } from './utils/auth';
 
 export async function middleware(request: NextRequest) {
-  const publicPaths = ['/', '/login', '/register', '/signup'];
+  const token = request.cookies.get('token')?.value;
 
-  if (publicPaths.includes(request.nextUrl.pathname)) {
-    return NextResponse.next();
-  }
-
-  const token = await getToken({ req: request });
-
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  if (request.nextUrl.pathname.startsWith('/api/chats') || 
+      request.nextUrl.pathname.startsWith('/api/messages')) {
+    if (!token) {
+      return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
+    }
+    try {
+      await verifyToken(token);
+    } catch (error) {
+      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/api/chats/:path*', '/api/messages/:path*'],
 };

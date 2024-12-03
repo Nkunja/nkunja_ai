@@ -45,6 +45,12 @@ export const useChat = () => {
         body: JSON.stringify({ title: 'New Chat' }),
       });
 
+      if (response.status === 401) {
+        // Redirect to login page
+        window.location.href = '/login';
+        return null;
+      }
+
       if (response.ok) {
         const newChat = await response.json();
         setChats(prevChats => [...prevChats, newChat]);
