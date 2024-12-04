@@ -1,15 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { fetchWithAuth } from '../utils/fetchWithAuth';
-
-interface Message {
-  message: string;
-  isUser: boolean;
-}
+import { Chat, Message, NewMessageData } from '../types/chat';
 
 export const useChat = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [chats, setChats] = useState([]);
+  const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const router = useRouter();
@@ -44,7 +40,7 @@ export const useChat = () => {
       router.push(`/chat/${chatId}`);
     } catch (error) {
       console.error('Error selecting chat:', error);
-      if (error.message === 'Unauthorized') {
+      if (error instanceof Error && error.message === 'Unauthorized') {
         router.push('/login');
       }
     }
@@ -80,7 +76,7 @@ export const useChat = () => {
       return newChatId;
     } catch (error) {
       console.error('Error creating chat:', error);
-      if (error.message === 'Unauthorized') {
+      if (error instanceof Error && error.message === 'Unauthorized') {
         localStorage.removeItem('token');
         setIsAuthenticated(false);
         router.push('/login');
@@ -98,10 +94,10 @@ export const useChat = () => {
     router.push('/login');
   }, [router]);
 
-  const handleNewMessage = useCallback(async (chatId: string, messageData: Message) => {
+  const handleNewMessage = useCallback(async (chatId: string, messageData: NewMessageData): Promise<Message> => {
     if (!isAuthenticated) {
       router.push('/login');
-      return;
+      throw new Error('Not authenticated');
     }
 
     try {
@@ -118,12 +114,12 @@ export const useChat = () => {
         throw new Error('Failed to create message');
       }
 
-      const newMessage = await response.json();
+      const newMessage: Message = await response.json();
       setMessages(prevMessages => [...prevMessages, newMessage]);
       return newMessage;
     } catch (error) {
       console.error('Error creating message:', error);
-      if (error.message === 'Unauthorized') {
+      if (error instanceof Error && error.message === 'Unauthorized') {
         router.push('/login');
       }
       throw error;

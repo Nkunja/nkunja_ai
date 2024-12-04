@@ -1,26 +1,16 @@
 "use client"
 import React, { createContext, useContext } from 'react';
 import { useChat } from '../hooks/useChat';
-
-export interface Message {
-  message: string;
-  isUser: boolean;
-}
-
-export interface Chat {
-  _id: string;
-  title: string;
-  messages: Message[];
-}
+import { Chat, Message, NewMessageData } from '../types/chat';
 
 interface ChatContextType {
+  isAuthenticated: boolean;
   chats: Chat[];
   activeChatId: string | null;
   messages: Message[];
-  isAuthenticated: boolean;
   handleNewChat: () => Promise<string | null>;
   handleSelectChat: (chatId: string) => Promise<void>;
-  handleNewMessage: (chatId: string, messageData: { message: string; isUser: boolean }) => Promise<any>;
+  handleNewMessage: (chatId: string, messageData: NewMessageData) => Promise<Message>;
   handleLogout: () => void;
 }
 
@@ -30,7 +20,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const chatState = useChat();
 
   return (
-    <ChatContext.Provider value={chatState}>
+    <ChatContext.Provider value={chatState as ChatContextType}>
       {children}
     </ChatContext.Provider>
   );
@@ -43,3 +33,5 @@ export const useChatContext = () => {
   }
   return context;
 };
+
+export type { ChatContextType, Chat, Message, NewMessageData };

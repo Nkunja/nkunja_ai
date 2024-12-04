@@ -1,9 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { connectDb } from '../../../lib/connectDb';
 import Chat from '../../../lib/models/chatModel';
+import { withCors } from '../../../lib/withCors';
 import { verifyToken } from '../../../utils/jwt';
+import { CustomJwtPayload } from '../../../types/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withCors(async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -17,7 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const token = authHeader.split(' ')[1];
-    let decoded;
+    let decoded: CustomJwtPayload;
+    
     try {
       decoded = verifyToken(token);
     } catch (error) {
@@ -25,16 +28,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const { id, title } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ message: 'Title is required' });
+    }
+
     const newChat = new Chat({
       _id: id,
       title,
-      userId: decoded.id, // Use the user ID from the decoded token
+      userId: decoded.id, // Now TypeScript knows this exists
     });
 
     await newChat.save();
     res.status(201).json(newChat);
   } catch (error) {
     console.error('Error creating chat:', error);
-    res.status(500).json({ message: 'Server error' });
+    if (error instanceof Error) {
+      res.status(500).json({ message: 'Server error', error: error.message });
+    } else {
+      res.status(500).json({ message: 'Server error', error: 'Unknown error' });
+    }
   }
-}
+});

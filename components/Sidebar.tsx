@@ -26,7 +26,7 @@ const Sidebar: React.FC = () => {
       await handleNewChat();
     } catch (error) {
       console.error('Error creating new chat:', error);
-      if (error.message === 'Unauthorized') {
+      if (error instanceof Error && error.message === 'Unauthorized') {
         router.push('/login');
       }
     }
@@ -43,7 +43,7 @@ const Sidebar: React.FC = () => {
       await handleSelectChat(chatId);
     } catch (error) {
       console.error('Error selecting chat:', error);
-      if (error.message === 'Unauthorized') {
+      if (error instanceof Error && error.message === 'Unauthorized') {
         router.push('/login');
       }
     }

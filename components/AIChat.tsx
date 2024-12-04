@@ -5,6 +5,7 @@ import ChatInput from './ChatInput';
 import ChatResponse from './ChatResponse';
 import { generateResponse } from '../utils/api';
 import { useChatContext } from '../contexts/ChatContext';
+import { NewMessageData } from '../types/chat';
 
 const AIChat = () => {
   const { 
@@ -39,16 +40,24 @@ const AIChat = () => {
       return;
     }
 
+    const messageData: NewMessageData = {
+      message: input,
+      isUser: true
+    };
+
     try {
       setIsLoading(true);
-      await handleNewMessage(chatId, { message: input, isUser: true });
+      await handleNewMessage(chatId, messageData);
       
       const result = await generateResponse(input);
-      await handleNewMessage(chatId, { message: result, isUser: false });
+      await handleNewMessage(chatId, {
+        message: result,
+        isUser: false
+      });
     } catch (error) {
       console.error('Error:', error);
       await handleNewMessage(chatId, { 
-        message: 'An error occurred. Please try again.', 
+        message: 'An error occurred. Please try again.',
         isUser: false 
       });
     } finally {
