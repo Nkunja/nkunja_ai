@@ -1,31 +1,26 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { signIn } from 'next-auth/react';
 import { connectDb } from '../../../lib/connectDb';
-import handleCors from '../../../lib/cors';
-
-connectDb();
+import User from '../../../lib/models/userModel';
+import bcrypt from 'bcryptjs';
+import { signToken } from '../../../utils/jwt';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await handleCors(req, res);
-  
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  await connectDb();
+
   const { email, password } = req.body;
 
   try {
-    const result = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-    });
-
-    if (result?.error) {
-      return res.status(401).json({ message: result.error });
+    const user = await User.findOne({ email });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    res.status(200).json({ message: 'Login successful' });
+    const token = signToken({ id: user._id, email: user.email });
+    res.status(200).json({ token });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });

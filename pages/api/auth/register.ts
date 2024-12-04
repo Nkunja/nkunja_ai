@@ -3,6 +3,7 @@ import { connectDb } from '../../../lib/connectDb';
 import User from '../../../lib/models/userModel';
 import bcrypt from 'bcryptjs';
 import { withCors } from '../../../lib/withCors';
+import { signToken } from '../../../utils/jwt';
 
 connectDb();
 
@@ -55,7 +56,8 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
 
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    const token = signToken({ id: newUser._id, email: newUser.email });
+    res.status(201).json({ message: 'User registered successfully', token });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error' });

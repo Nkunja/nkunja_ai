@@ -1,12 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
 import { connectDb } from '../../../lib/connectDb';
 import Message from '../../../lib/models/messageModel';
 import Chat from '../../../lib/models/chatModel';
 import { withCors } from '../../../lib/withCors';
-
-connectDb();
+import { verifyToken } from '../../../utils/jwt';
 
 export default withCors(async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -14,14 +11,22 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
   }
 
   try {
-    const session = await getServerSession(req, res, authOptions);
+    await connectDb();
 
-    if (!session || !session.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'No token provided' });
     }
 
-    const userId = session.user.id;
+    const token = authHeader.split(' ')[1];
+    let decoded;
+    try {
+      decoded = verifyToken(token);
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
 
+    const userId = decoded.id;
     const { chatId, message, isUser } = req.body;
 
     if (!chatId || !message) {
@@ -44,8 +49,12 @@ export default withCors(async function handler(req: NextApiRequest, res: NextApi
     await newMessage.save();
 
     res.status(201).json(newMessage);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating message:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    if (error instanceof Error) {
+      res.status(500).json({ message: 'Server error', error: error.message });
+    } else {
+      res.status(500).json({ message: 'Server error', error: 'Unknown error' });
+    }
   }
 });

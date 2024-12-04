@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import ChatInput from './ChatInput';
@@ -7,7 +7,14 @@ import { generateResponse } from '../utils/api';
 import { useChatContext } from '../contexts/ChatContext';
 
 const AIChat = () => {
-  const { activeChatId, chats, messages, handleNewMessage, handleNewChat, isAuthenticated } = useChatContext();
+  const { 
+    activeChatId, 
+    chats, 
+    messages, 
+    handleNewMessage, 
+    handleNewChat, 
+    isAuthenticated 
+  } = useChatContext();
   const [isLoading, setIsLoading] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
   const router = useRouter();
@@ -27,15 +34,23 @@ const AIChat = () => {
       return;
     }
 
-    await handleNewMessage(chatId, { message: input, isUser: true });
-    setIsLoading(true);
+    if (!chatId) {
+      console.error('No active chat ID');
+      return;
+    }
 
     try {
+      setIsLoading(true);
+      await handleNewMessage(chatId, { message: input, isUser: true });
+      
       const result = await generateResponse(input);
       await handleNewMessage(chatId, { message: result, isUser: false });
     } catch (error) {
       console.error('Error:', error);
-      await handleNewMessage(chatId, { message: 'An error occurred. Please try again.', isUser: false });
+      await handleNewMessage(chatId, { 
+        message: 'An error occurred. Please try again.', 
+        isUser: false 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +69,6 @@ const AIChat = () => {
       console.error('Failed to create new chat');
     }
   };
-
 
   if (needsLogin) {
     return (

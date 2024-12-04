@@ -1,32 +1,49 @@
 import mongoose from 'mongoose';
-import { MongoClient } from 'mongodb';
+
 const uri = process.env.MONGO_URI as string;
 
 if (!uri) {
   throw new Error('Invalid/Missing environment variable: "MONGO_URI"');
 }
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
-
-if (process.env.NODE_ENV === 'development') {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri);
-    global._mongoClientPromise = client.connect();
-  }
-  clientPromise = global._mongoClientPromise;
-} else {
-  client = new MongoClient(uri);
-  clientPromise = client.connect();
+interface GlobalWithMongoose extends Global {
+  mongoose: {
+    conn: typeof mongoose | null;
+    promise: Promise<typeof mongoose> | null;
+  };
 }
 
-export default clientPromise;
+declare const global: GlobalWithMongoose;
+
+const cached = global.mongoose || { conn: null, promise: null };
+
+if (!global.mongoose) {
+  global.mongoose = cached;
+}
 
 export async function connectDb() {
-  if (mongoose.connection.readyState === 1) {
-    return mongoose.connection.db;
+  if (cached.conn) {
+    return cached.conn;
   }
-  await mongoose.connect(uri);
-  console.log('Mongoose connection established');
-  return mongoose.connection.db;
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+    };
+
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
+      console.log('Mongoose connection established');
+      return mongoose;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
 }

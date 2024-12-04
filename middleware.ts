@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { verifyToken } from './utils/jwt';
 
 export async function middleware(request: NextRequest) {
   const publicPaths = ['/', '/login', '/register', '/signup'];
@@ -9,9 +9,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req: request });
+  const token = request.cookies.get('token')?.value;
 
-  if (!token) {
+  if (!token || !verifyToken(token)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

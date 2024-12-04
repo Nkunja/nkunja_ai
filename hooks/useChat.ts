@@ -1,202 +1,162 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { fetchWithAuth } from '../utils/fetchWithAuth';
 
-
-interface Chat {
-  _id: string;
-  title: string;
-  messages: { message: string; isUser: boolean }[];
-}
-
 interface Message {
-  _id: string;
   message: string;
   isUser: boolean;
 }
 
 export const useChat = () => {
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string>('');
-  const [activeChat, setActiveChat] = useState<Chat | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { data: session, status } = useSession();
-  const isAuthenticated = status === 'authenticated';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [chats, setChats] = useState([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-
   const router = useRouter();
 
-  const getActiveChat = useCallback(() => {
-    return chats.find(chat => chat._id === activeChatId) || null;
-  }, [chats, activeChatId]);
-
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    } else if (status === 'authenticated') {
-      fetchChats();
-    }
-  }, [status]);
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      setIsAuthenticated(!!token);
+    };
 
-  const fetchChats = useCallback(async () => {
-    if (!isAuthenticated) return;
-    setIsLoading(true);
-    try {
-      const response = await fetchWithAuth('/api/chats');
-      if (response.ok) {
-        const data = await response.json();
-        setChats(data.chats);
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to fetch chats:', errorData);
-        setError(`Failed to fetch chats: ${errorData.message}`);
-      }
-    } catch (error: any) {
-      console.error('Error fetching chats:', error);
-      setError(`Error fetching chats: ${error.message}`);
-    } finally {
-      setIsLoading(false);
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
+
+  const handleSelectChat = useCallback(async (chatId: string) => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
     }
-  }, [isAuthenticated, fetchWithAuth]);
+
+    try {
+      const response = await fetchWithAuth(`/api/messages/${chatId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch chat messages');
+      }
+
+      const messages = await response.json();
+      setMessages(messages);
+      setActiveChatId(chatId);
+      router.push(`/chat/${chatId}`);
+    } catch (error) {
+      console.error('Error selecting chat:', error);
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
+    }
+  }, [isAuthenticated, router]);
 
   const handleNewChat = useCallback(async () => {
-    if (!isAuthenticated) {
-      console.error('User is not authenticated');
+    const token = localStorage.getItem('token');
+    if (!token) {
       router.push('/login');
       return null;
     }
+
     const newChatId = new Date().getTime().toString();
-    const newChat = {
-      _id: newChatId,
-      title: "New Chat",
-      messages: [],
-    };
-  
+    
     try {
       const response = await fetchWithAuth('/api/chats/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: newChatId, title: "New Chat" }),
+        body: JSON.stringify({
+          id: newChatId,
+          title: 'New Chat',
+        }),
       });
-  
-      if (response.ok) {
-        const createdChat = await response.json();
-        setChats((prevChats) => [...prevChats, { ...newChat, ...createdChat }]);
-        setActiveChatId(newChatId);
-        router.push(`/chat/${newChatId}`);
-        return newChatId;
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to create chat:', errorData.message);
-        return null;
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create chat');
       }
+
+      const createdChat = await response.json();
+      setChats(prevChats => [...prevChats, createdChat]);
+      setActiveChatId(newChatId);
+      router.push(`/chat/${newChatId}`);
+      return newChatId;
     } catch (error) {
       console.error('Error creating chat:', error);
+      if (error.message === 'Unauthorized') {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        router.push('/login');
+      }
       return null;
     }
-  }, [isAuthenticated, router, fetchWithAuth]);
+  }, [router]);
 
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setChats([]);
+    setActiveChatId(null);
+    setMessages([]);
+    router.push('/login');
+  }, [router]);
 
-  const handleNewMessage = useCallback(async (chatId: string, messageData: { message: string; isUser: boolean }) => {
+  const handleNewMessage = useCallback(async (chatId: string, messageData: Message) => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+
     try {
       const response = await fetchWithAuth('/api/messages/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId, ...messageData }),
+        body: JSON.stringify({
+          chatId,
+          message: messageData.message,
+          isUser: messageData.isUser
+        }),
       });
-  
-      if (response.ok) {
-        const savedMessage: Message = await response.json();
-        
-        setChats((prevChats) => {
-          const updatedChats = prevChats.map((chat) => {
-            if (chat._id === chatId) {
-              const updatedMessages = Array.isArray(chat.messages) 
-                ? [...chat.messages, savedMessage]
-                : [savedMessage];
-              
-              // Update chat title if this is the first user message
-              const newTitle = updatedMessages.length === 1 && messageData.isUser
-                ? messageData.message.slice(0, 50) + (messageData.message.length > 50 ? '...' : '')
-                : chat.title;
-              
-              return {
-                ...chat,
-                title: newTitle,
-                messages: updatedMessages,
-              };
-            }
-            return chat;
-          });
-  
-          // Find the updated chat after the state update
-          const updatedChat = updatedChats.find(c => c._id === chatId);
-  
-          // Update chat title on the server if this is the first user message
-          if (messageData.isUser && updatedChat && updatedChat.messages.length === 1) {
-            fetchWithAuth(`/api/chats/${chatId}/update-title`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ title: messageData.message.slice(0, 50) }),
-            }).catch(error => console.error('Failed to update chat title:', error));
+
+      if (!response.ok) {
+        throw new Error('Failed to create message');
+      }
+
+      const newMessage = await response.json();
+      setMessages(prevMessages => [...prevMessages, newMessage]);
+      return newMessage;
+    } catch (error) {
+      console.error('Error creating message:', error);
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
+      throw error;
+    }
+  }, [isAuthenticated, router]);
+
+  // Add a useEffect to fetch chats when authenticated
+  useEffect(() => {
+    const fetchChats = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await fetchWithAuth('/api/chats');
+          if (response.ok) {
+            const fetchedChats = await response.json();
+            setChats(fetchedChats);
           }
-  
-          return updatedChats;
-        });
-  
-        if (chatId === activeChatId) {
-          setMessages((prevMessages) => [...prevMessages, savedMessage]);
+        } catch (error) {
+          console.error('Error fetching chats:', error);
         }
-      } else {
-        console.error('Failed to save message');
       }
-    } catch (error) {
-      console.error('Error saving message:', error);
-    }
-  }, [fetchWithAuth, activeChatId]);
-  
+    };
 
-  const handleSelectChat = useCallback(async (chatId: string) => {
-    setActiveChatId(chatId);
-    setIsLoading(true);
-    try {
-      const response = await fetchWithAuth(`/api/messages/${chatId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data.messages);
-      } else {
-        console.error('Failed to fetch messages');
-        setMessages([]);
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      setMessages([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchWithAuth]);
-
-
-  const handleLogout = useCallback(async () => {
-    await signOut({ redirect: false });
-    router.push('/login');
-  }, [router, signOut]);
+    fetchChats();
+  }, [isAuthenticated]);
 
   return {
-    chats,
-    messages,
-    activeChatId,
     isAuthenticated,
-    fetchChats,
+    chats,
+    activeChatId,
+    messages,
     handleNewChat,
     handleSelectChat,
-    getActiveChat,
     handleNewMessage,
     handleLogout,
-    error,
   };
 };

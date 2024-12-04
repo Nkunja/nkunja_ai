@@ -1,49 +1,58 @@
 import React, { useState } from 'react';
 import { FiPlus, FiChevronLeft, FiChevronRight, FiLogOut } from 'react-icons/fi';
-import { Chat, useChatContext } from '../contexts/ChatContext';
+import { useChatContext } from '../contexts/ChatContext';
 import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
 
-interface SidebarProps {
-  chats: Chat[];
-  onSelectChat: (chatId: string) => void;
-  onNewChat: () => void;
-  onLogout: () => void;
-  isAuthenticated: boolean;
-}
-
-const Sidebar: React.FC<SidebarProps> = () => {
-  const { chats, activeChatId, handleSelectChat, handleNewChat, handleLogout } = useChatContext();
+const Sidebar: React.FC = () => {
+  const { 
+    chats, 
+    activeChatId, 
+    handleSelectChat, 
+    handleNewChat, 
+    handleLogout, 
+    isAuthenticated 
+  } = useChatContext();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const router = useRouter();
-  const { data: session, status } = useSession();
 
-  const isAuthenticated = status === 'authenticated';
-
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
-  const handleNewChatClick = () => {
-    if (isAuthenticated) {
-      handleNewChat();
-    } else {
+  const handleNewChatClick = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
       router.push('/login');
+      return;
+    }
+    
+    try {
+      await handleNewChat();
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
     }
   };
 
-  const handleChatSelect = (chatId: string) => {
-    if (isAuthenticated) {
-      handleSelectChat(chatId);
-    } else {
+  const handleChatSelect = async (chatId: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
       router.push('/login');
+      return;
+    }
+    
+    try {
+      await handleSelectChat(chatId);
+    } catch (error) {
+      console.error('Error selecting chat:', error);
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
     }
   };
 
   return (
     <div className={`flex flex-col ${isCollapsed ? 'w-16' : 'w-64'} bg-gray-800 text-white p-4 transition-width duration-300`}>
       <button
-        onClick={toggleCollapse}
+        onClick={() => setIsCollapsed(!isCollapsed)}
         className="flex items-center justify-center bg-gray-700 hover:bg-gray-600 w-full text-white font-bold py-2 px-4 rounded mb-4"
       >
         {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
