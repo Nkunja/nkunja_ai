@@ -4,7 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 const cors = Cors({
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true,
-  origin: process.env.FRONTEND_URL || 'https://nkunja-ai.vercel.app', // Replace with your frontend URL
+  origin: 'https://ai.sirnkunja.co.ke', // Replace with your frontend URL
 });
 
 function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: Function) {
